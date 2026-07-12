@@ -1,0 +1,123 @@
+// Prisma schema — works with SQLite locally and Postgres in production.
+//
+// Local dev:  provider = "sqlite",     DATABASE_URL="file:./dev.db"
+// Production: provider = "postgresql", DATABASE_URL="postgres://..."
+//
+// To deploy on Postgres (Neon / Vercel Postgres / Azure), change the
+// provider below to "postgresql" and set DATABASE_URL — no other code
+// changes are needed. All column types used here are compatible with both
+// databases (JSON payloads are stored as String, since SQLite has no
+// native Json type).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite" // change to "postgresql" for production
+  url      = env("DATABASE_URL")
+}
+
+// ---------- Auth.js (NextAuth v5) models ----------
+
+model User {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  hashedPassword String?
+  name           String?
+  emailVerified  DateTime?
+  image          String?
+  createdAt      DateTime  @default(now())
+
+  accounts   Account[]
+  sessions   Session[]
+  toolRuns   ToolRun[]
+  savedItems SavedItem[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ---------- Application models ----------
+
+// Write-only log of every AI tool invocation. Used for the rate limiter and
+// a simple usage/cost view later. Never stores full prompts or outputs —
+// only a truncated input summary (~100 chars, no PHI) and token counts.
+model ToolRun {
+  id           String   @id @default(cuid())
+  userId       String
+  toolId       String
+  inputSummary String
+  inputTokens  Int      @default(0)
+  outputTokens Int      @default(0)
+  latencyMs    Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+// Generic saved-output table shared by all tools (Literature Search,
+// Grant Editor, IRB Draft, ...). `content` and `sourceMetadata` are
+// JSON-serialized strings for SQLite compatibility.
+model SavedItem {
+  id             String   @id @default(cuid())
+  userId         String
+  toolId         String
+  title          String
+  content        String
+  sourceMetadata String? // JSON string, e.g. citations array
+  createdAt      DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+// TTL cache of raw external scholarly-API responses. This is the app's
+// substitute for a vector store: literature search hits live APIs and
+// caches merged results here, keyed by a hash of the normalized query.
+model ApiCache {
+  id        String   @id @default(cuid())
+  cacheKey  String   @unique
+  source    String
+  payload   String // JSON string
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  @@index([expiresAt])
+}
