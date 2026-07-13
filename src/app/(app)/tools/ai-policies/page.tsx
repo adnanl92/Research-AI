@@ -16,7 +16,7 @@ export const metadata: Metadata = { title: "AI Policies" };
 const SECTIONS: { title: string; content: string }[] = [
   {
     title: "Institutional AI Use Guidance",
-    content: `**[PLACEHOLDER — replace with WashU's official policy language before production use]**
+    content: `See WashU's official AI guidance: **[ai.washu.edu](https://ai.washu.edu/)**
 
 This section should describe the university's expectations for faculty and staff use of generative AI tools, including:
 
@@ -29,7 +29,7 @@ Until replaced, treat all output from this application as **first-draft assistan
   },
   {
     title: "Data Privacy & PHI Notice",
-    content: `**[PLACEHOLDER — replace with WashU's official policy language before production use]**
+    content: `See WashU's official data policies: **[HIPAA Policies & Procedures](https://hipaa.wustl.edu/policies-procedures/)** · **[Research Data and Materials Policy](https://research.washu.edu/research-data-and-materials-policy/)**
 
 **This application must not be used to store or process Protected Health Information (PHI) in its current configuration.** It is not configured as a HIPAA-compliant environment and no Business Associate Agreement covers the AI backend.
 
@@ -42,7 +42,7 @@ This section should be replaced with guidance covering:
   },
   {
     title: "Funder-Specific AI Disclosure Requirements (NIH / NSF)",
-    content: `**[PLACEHOLDER — replace with current funder policy summaries and WashU's interpretation before production use]**
+    content: `See NIH's official AI policy: **[osp.od.nih.gov/policies/artificial-intelligence](https://osp.od.nih.gov/policies/artificial-intelligence/)**
 
 Federal funders are actively updating their positions on AI-generated content. This section should summarize, with links to the primary sources:
 

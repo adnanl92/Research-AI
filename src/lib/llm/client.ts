@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { AzureOpenAI } from "openai";
+import OpenAI, { AzureOpenAI } from "openai";
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import { z } from "zod";
 
@@ -8,16 +8,21 @@ import { z } from "zod";
  * backend. Every tool imports generateCompletion / generateStructured from
  * here, so swapping backends means changing this file only.
  *
- * Two backends are supported, selected automatically from env vars
- * (or forced with LLM_PROVIDER="azure" | "anthropic"):
+ * Three backends are supported, selected automatically from env vars
+ * (or forced with LLM_PROVIDER="azure" | "openai" | "anthropic"), checked
+ * in this priority order:
  *
  *   1. Azure AI Foundry (Azure OpenAI-compatible) — the production target.
  *      Active when AZURE_OPENAI_ENDPOINT / AZURE_OPENAI_API_KEY /
  *      AZURE_OPENAI_API_VERSION / AZURE_OPENAI_DEPLOYMENT_NAME are all set.
  *
- *   2. Anthropic Claude API — active when ANTHROPIC_API_KEY is set (and
- *      Azure is not fully configured). Model defaults to claude-opus-4-8;
- *      override with ANTHROPIC_MODEL.
+ *   2. OpenAI (api.openai.com) — active when OPENAI_API_KEY is set (and
+ *      Azure is not fully configured). Model defaults to gpt-4.1-mini;
+ *      override with OPENAI_MODEL.
+ *
+ *   3. Anthropic Claude API — active when ANTHROPIC_API_KEY is set (and
+ *      neither Azure nor OpenAI is configured). Model defaults to
+ *      claude-opus-4-8; override with ANTHROPIC_MODEL.
  */
 
 export class LLMError extends Error {
@@ -45,7 +50,7 @@ export interface CompletionResult {
 const REQUEST_TIMEOUT_MS = 90_000;
 const DEFAULT_MAX_TOKENS = 4096;
 
-type Provider = "azure" | "anthropic";
+type Provider = "azure" | "openai" | "anthropic";
 
 function azureConfigured(): boolean {
   return Boolean(
@@ -58,11 +63,13 @@ function azureConfigured(): boolean {
 
 function resolveProvider(): Provider {
   const forced = process.env.LLM_PROVIDER;
-  if (forced === "azure" || forced === "anthropic") return forced;
+  if (forced === "azure" || forced === "openai" || forced === "anthropic")
+    return forced;
   if (azureConfigured()) return "azure";
+  if (process.env.OPENAI_API_KEY) return "openai";
   if (process.env.ANTHROPIC_API_KEY) return "anthropic";
   throw new LLMError(
-    "No LLM backend configured. Either set the AZURE_OPENAI_* variables (Azure AI Foundry) or ANTHROPIC_API_KEY (Anthropic) in .env.local — see .env.example.",
+    "No LLM backend configured. Set the AZURE_OPENAI_* variables (Azure AI Foundry), OPENAI_API_KEY (OpenAI), or ANTHROPIC_API_KEY (Anthropic) in .env.local — see .env.example.",
   );
 }
 
@@ -142,6 +149,80 @@ async function callAnthropic(options: RawCallOptions): Promise<CompletionResult>
       );
     }
     if (error instanceof Anthropic.APIError) {
+      throw new LLMError(`LLM request failed: ${error.message}`, error);
+    }
+    const detail = error instanceof Error ? error.message : String(error);
+    throw new LLMError(`LLM request failed: ${detail}`, error);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// OpenAI backend
+// ---------------------------------------------------------------------------
+
+let openaiClient: OpenAI | null = null;
+
+function getOpenAIClient(): OpenAI {
+  if (!openaiClient) {
+    openaiClient = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+      timeout: REQUEST_TIMEOUT_MS,
+      maxRetries: 2,
+    });
+  }
+  return openaiClient;
+}
+
+async function callOpenAI(options: RawCallOptions): Promise<CompletionResult> {
+  const client = getOpenAIClient();
+  const model = process.env.OPENAI_MODEL || "gpt-4.1-mini";
+
+  const messages: ChatCompletionMessageParam[] = [
+    { role: "system", content: options.system },
+    ...options.messages,
+  ];
+
+  try {
+    const response = await client.chat.completions.create({
+      model,
+      messages,
+      ...(options.temperature !== undefined
+        ? { temperature: options.temperature }
+        : {}),
+      ...(options.maxTokens !== undefined
+        ? { max_tokens: options.maxTokens }
+        : {}),
+      ...(options.jsonMode
+        ? { response_format: { type: "json_object" as const } }
+        : {}),
+    });
+
+    const text = response.choices[0]?.message?.content;
+    if (typeof text !== "string" || !text) {
+      throw new LLMError("The model returned an empty response.");
+    }
+    return {
+      text,
+      usage: {
+        promptTokens: response.usage?.prompt_tokens ?? 0,
+        completionTokens: response.usage?.completion_tokens ?? 0,
+      },
+    };
+  } catch (error) {
+    if (error instanceof LLMError) throw error;
+    if (error instanceof OpenAI.AuthenticationError) {
+      throw new LLMError(
+        "The OpenAI API key was rejected. Check OPENAI_API_KEY in .env.local.",
+        error,
+      );
+    }
+    if (error instanceof OpenAI.RateLimitError) {
+      throw new LLMError(
+        "The LLM backend is rate-limiting requests. Wait a moment and try again.",
+        error,
+      );
+    }
+    if (error instanceof OpenAI.APIError) {
       throw new LLMError(`LLM request failed: ${error.message}`, error);
     }
     const detail = error instanceof Error ? error.message : String(error);
@@ -248,7 +329,9 @@ async function callAzure(options: RawCallOptions): Promise<CompletionResult> {
 
 async function callChat(options: RawCallOptions): Promise<CompletionResult> {
   const provider = resolveProvider();
-  return provider === "azure" ? callAzure(options) : callAnthropic(options);
+  if (provider === "azure") return callAzure(options);
+  if (provider === "openai") return callOpenAI(options);
+  return callAnthropic(options);
 }
 
 /**
