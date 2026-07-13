@@ -1,0 +1,40 @@
+# Normalize line endings to LF for everything Git treats as text, so the
+# repo behaves the same whether a contributor is on macOS, Linux, or Windows.
+* text=auto eol=lf
+
+# Lockfiles are machine-generated: keep them out of GitHub's language stats
+# and collapse them in PR diffs by default.
+package-lock.json linguist-generated=true -diff
+npm-shrinkwrap.json linguist-generated=true -diff
+
+# Source and config files — force LF explicitly (belt-and-suspenders with
+# the `* text=auto` rule above).
+*.ts text eol=lf
+*.tsx text eol=lf
+*.js text eol=lf
+*.jsx text eol=lf
+*.mjs text eol=lf
+*.cjs text eol=lf
+*.json text eol=lf
+*.css text eol=lf
+*.md text eol=lf
+*.mmd text eol=lf
+*.prisma text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+.env.example text eol=lf
+
+# SVGs are XML text, not binary.
+*.svg text eol=lf
+
+# Treat genuine binaries as binary (no line-ending or diff mangling).
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.db binary
