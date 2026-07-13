@@ -35,7 +35,7 @@ function summaryToMarkdown(s: Summary): string {
     s.keyDecisions.length ? s.keyDecisions.map((d) => `- ${d}`).join("\n") : "- (none)",
     "\n## Action Items",
     s.actionItems.length
-      ? s.actionItems.map((a) => `- ${a.item}${a.owner ? ` — **${a.owner}**` : ""}`).join("\n")
+      ? s.actionItems.map((a) => `- ${a.item}${a.owner ? ` (**${a.owner}**)` : ""}`).join("\n")
       : "- (none)",
     "\n## Open Questions",
     s.openQuestions.length ? s.openQuestions.map((q) => `- ${q}`).join("\n") : "- (none)",

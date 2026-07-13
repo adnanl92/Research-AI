@@ -149,7 +149,7 @@ export function IrbClient() {
       </div>
 
       <DisclaimerBanner>
-        AI-assisted draft — review before submission. This does not replace
+        AI-assisted draft. Review before submission. This does not replace
         institutional IRB review or legal/compliance guidance, and no part of
         the output constitutes a regulatory determination.
       </DisclaimerBanner>

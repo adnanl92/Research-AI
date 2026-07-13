@@ -44,7 +44,7 @@ export function SaveButton({
         throw new Error(data?.error ?? "Save failed");
       }
       setState("saved");
-      toast.success("Saved — find it on your Home dashboard.");
+      toast.success("Saved. Find it on your Home dashboard.");
     } catch (error) {
       setState("idle");
       toast.error(error instanceof Error ? error.message : "Save failed");

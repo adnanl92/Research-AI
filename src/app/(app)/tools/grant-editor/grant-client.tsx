@@ -90,7 +90,7 @@ export function GrantClient() {
       </div>
 
       <DisclaimerBanner>
-        AI-assisted draft — review and substantially revise before submission.
+        AI-assisted draft. Review and substantially revise before submission.
         Federal funders increasingly restrict AI-generated grant content;
         verify current NIH/NSF policy before submitting.
       </DisclaimerBanner>
@@ -106,7 +106,7 @@ export function GrantClient() {
             value={idea}
             onChange={(e) => setIdea(e.target.value)}
             rows={8}
-            placeholder="Paste your rough idea, background notes, or an elevator pitch (at least a few sentences). The draft is generated purely from what you write here — nothing is invented."
+            placeholder="Paste your rough idea, background notes, or an elevator pitch (at least a few sentences). The draft is generated purely from what you write here; nothing is invented."
           />
           <Button onClick={generateAims} disabled={aimsLoading || idea.trim().length < 30}>
             {aimsLoading ? <Loader2 className="animate-spin" /> : <Sparkles />}

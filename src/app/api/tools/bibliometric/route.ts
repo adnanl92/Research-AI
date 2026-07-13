@@ -227,7 +227,7 @@ export async function POST(request: Request) {
     console.error("bibliometric error:", error);
     const message =
       error instanceof Error && error.message.includes("HTTP 404")
-        ? "Nothing found for that input — check the DOI/ID or try a different spelling."
+        ? "Nothing found for that input. Check the DOI/ID or try a different spelling."
         : "Bibliometric lookup failed. Please try again.";
     return NextResponse.json({ error: message }, { status: 502 });
   }

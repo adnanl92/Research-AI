@@ -96,8 +96,8 @@ export function DiagramClient() {
         <h2 className="text-xl font-semibold tracking-tight">Diagram Builder</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Describe a process, workflow, or study design in plain language and
-          get an editable Mermaid diagram — rendered right here, no external
-          services.
+          get an editable Mermaid diagram, rendered right here with no
+          external services.
         </p>
       </div>
 
@@ -170,7 +170,7 @@ export function DiagramClient() {
                   <AlertCircle />
                   <AlertTitle>Render error</AlertTitle>
                   <AlertDescription>
-                    {renderError} — hand-edit the code below and re-render.
+                    {renderError}. Hand-edit the code below and re-render.
                   </AlertDescription>
                 </Alert>
               ) : svg ? (

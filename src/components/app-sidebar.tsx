@@ -82,7 +82,7 @@ export function AppSidebar() {
                 <SidebarMenuItem key={tool.id}>
                   <SidebarMenuButton
                     disabled
-                    tooltip={`${tool.label} — coming soon`}
+                    tooltip={`${tool.label} (coming soon)`}
                     className="cursor-not-allowed opacity-50"
                   >
                     <tool.icon />

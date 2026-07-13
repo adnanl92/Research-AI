@@ -23,7 +23,7 @@ export default async function AppLayout({
           <p>
             <strong>No PHI:</strong> This application must not be used to
             store or process protected health information (PHI) in this
-            configuration. AI outputs are first drafts — review everything
+            configuration. AI outputs are first drafts. Review everything
             before use.
           </p>
         </footer>

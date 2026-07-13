@@ -81,7 +81,7 @@ export function CritiqueClient() {
         <p className="mt-1 text-sm text-muted-foreground">
           Constructive pre-submission review: a simulated reviewer reads your
           draft and returns numbered concerns with severity tags and suggested
-          fixes. Nothing is sent anywhere except the AI backend — and nothing
+          fixes. Nothing is sent anywhere except the AI backend, and nothing
           is judged but the text.
         </p>
       </div>
@@ -147,7 +147,7 @@ export function CritiqueClient() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-base">
-                Overall impression — {personaLabel}
+                Overall impression: {personaLabel}
               </CardTitle>
               <SaveButton
                 toolId="critique"

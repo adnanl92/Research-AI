@@ -26,7 +26,7 @@ export default function AppError({
         <h2 className="text-lg font-semibold">Something went wrong</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           An unexpected error occurred while rendering this page. Your data is
-          safe — try again.
+          safe. Try again.
         </p>
       </div>
       <Button onClick={reset}>

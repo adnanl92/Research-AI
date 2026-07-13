@@ -174,7 +174,7 @@ export function SearchClient() {
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Ask a research question. The answer is generated only from papers
-          retrieved live from OpenAlex, PubMed, and Semantic Scholar — every
+          retrieved live from OpenAlex, PubMed, and Semantic Scholar. Every
           claim is cited.
         </p>
       </div>

@@ -46,11 +46,11 @@ This section should be replaced with guidance covering:
 
 Federal funders are actively updating their positions on AI-generated content. This section should summarize, with links to the primary sources:
 
-- **NIH** — policies on the use of generative AI in grant applications and in peer review (NIH prohibits reviewers from using AI in peer review; applicants remain fully responsible for the accuracy and integrity of submitted content).
-- **NSF** — guidance on disclosure of AI use in proposal preparation and the responsibilities of proposers and reviewers.
-- **Journals & publishers** — many require disclosure of AI assistance and prohibit listing AI tools as authors.
+- **NIH**: policies on the use of generative AI in grant applications and in peer review (NIH prohibits reviewers from using AI in peer review; applicants remain fully responsible for the accuracy and integrity of submitted content).
+- **NSF**: guidance on disclosure of AI use in proposal preparation and the responsibilities of proposers and reviewers.
+- **Journals & publishers**: many require disclosure of AI assistance and prohibit listing AI tools as authors.
 
-**Always verify the current policy on the funder's own site before submitting** — these summaries go stale quickly. The Grant Editor tool in this application shows a persistent reminder for this reason.`,
+**Always verify the current policy on the funder's own site before submitting.** These summaries go stale quickly. The Grant Editor tool in this application shows a persistent reminder for this reason.`,
   },
 ];
 
@@ -61,7 +61,7 @@ export default function AiPoliciesPage() {
         <h2 className="text-xl font-semibold tracking-tight">AI Policies</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Institutional guidance on AI use in research. This page is static
-          reference content maintained by administrators — it makes no AI or
+          reference content maintained by administrators. It makes no AI or
           database calls.
         </p>
       </div>
