@@ -10,13 +10,10 @@
  */
 import type { LucideIcon } from "lucide-react";
 import {
-  Accessibility,
   BarChart3,
   BookOpenCheck,
-  Briefcase,
   FileSignature,
   Home,
-  Lightbulb,
   MessageSquareQuote,
   NotebookPen,
   Podcast,
@@ -133,30 +130,6 @@ export const tools: ToolDefinition[] = [
     icon: Users,
     route: "/tools/team-workspaces",
     description: "Shared projects and collaboration for lab groups.",
-    status: "roadmap",
-  },
-  {
-    id: "promotion-packets",
-    label: "Promotion & Tenure Packets",
-    icon: Briefcase,
-    route: "/tools/promotion-packets",
-    description: "Assemble promotion and tenure documentation.",
-    status: "roadmap",
-  },
-  {
-    id: "invention-disclosure",
-    label: "Invention Disclosure Assistant",
-    icon: Lightbulb,
-    route: "/tools/invention-disclosure",
-    description: "Guided drafting for invention disclosures.",
-    status: "roadmap",
-  },
-  {
-    id: "accessibility-checker",
-    label: "Accessibility Checker",
-    icon: Accessibility,
-    route: "/tools/accessibility-checker",
-    description: "Check course and research materials for accessibility.",
     status: "roadmap",
   },
 ];
