@@ -12,6 +12,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   BarChart3,
   BookOpenCheck,
+  BookText,
   FileSignature,
   Home,
   MessageSquareQuote,
@@ -68,6 +69,15 @@ export const tools: ToolDefinition[] = [
     route: "/tools/irb-draft",
     description:
       "Guided form that produces a structured first-draft IRB protocol document for you to revise.",
+    status: "active",
+  },
+  {
+    id: "manuscript-coach",
+    label: "Manuscript Coach",
+    icon: BookText,
+    route: "/tools/manuscript-coach",
+    description:
+      "Upload a manuscript (PDF or Word) and review it against the Three Pillars of scientific storytelling, pillar by pillar, with targeted revision suggestions.",
     status: "active",
   },
   {
