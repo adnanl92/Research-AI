@@ -33,8 +33,8 @@ import { SaveButton } from "@/components/save-button";
 import { cn } from "@/lib/utils";
 import {
   coachSets,
-  set2Preview,
   type CoachAnalysis,
+  type CoachSet,
 } from "@/lib/manuscript-coach/definitions";
 
 interface Manuscript {
@@ -52,8 +52,8 @@ interface RunState {
   error?: string;
 }
 
-const set1 = coachSets.find((s) => s.id === "set-1")!;
-const set2 = coachSets.find((s) => s.id === "set-2")!;
+const activeSets = coachSets.filter((s) => s.status === "active");
+const comingSoonSets = coachSets.filter((s) => s.status === "coming-soon");
 
 export function CoachClient() {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -64,10 +64,22 @@ export function CoachClient() {
   const [showPaste, setShowPaste] = useState(false);
   const [pastedText, setPastedText] = useState("");
   const [runs, setRuns] = useState<Record<string, RunState>>({});
-  const [activeAnalysis, setActiveAnalysis] = useState(set1.analyses[0].id);
+  const [activeAnalysis, setActiveAnalysis] = useState<Record<string, string>>(
+    () =>
+      Object.fromEntries(
+        activeSets.map((s) => [s.id, s.analyses[0]?.id ?? ""]),
+      ),
+  );
 
   function setRun(id: string, state: RunState) {
     setRuns((prev) => ({ ...prev, [id]: state }));
+  }
+
+  function resetForNewManuscript() {
+    setRuns({});
+    setActiveAnalysis(
+      Object.fromEntries(activeSets.map((s) => [s.id, s.analyses[0]?.id ?? ""])),
+    );
   }
 
   async function handleFile(file: File) {
@@ -88,8 +100,7 @@ export function CoachClient() {
         wordCount: data.wordCount,
         truncated: data.truncated,
       });
-      setRuns({});
-      setActiveAnalysis(set1.analyses[0].id);
+      resetForNewManuscript();
     } catch (err) {
       setUploadError(
         err instanceof Error ? err.message : "Could not read this file.",
@@ -107,8 +118,7 @@ export function CoachClient() {
       wordCount: text.split(/\s+/).filter(Boolean).length,
       truncated: false,
     });
-    setRuns({});
-    setActiveAnalysis(set1.analyses[0].id);
+    resetForNewManuscript();
     setUploadError(null);
   }
 
@@ -142,18 +152,141 @@ export function CoachClient() {
     }
   }
 
-  function runAll() {
-    // Fire all analyses in parallel; each tab updates independently.
-    for (const analysis of set1.analyses) {
+  function runAll(set: CoachSet) {
+    // Fire the set's analyses in parallel; each tab updates independently.
+    for (const analysis of set.analyses) {
       const current = runs[analysis.id];
       if (current?.status === "running" || current?.status === "done") continue;
       void runAnalysis(analysis);
     }
   }
 
-  const anyRunning = set1.analyses.some(
-    (a) => runs[a.id]?.status === "running",
-  );
+  function renderSetPanel(set: CoachSet) {
+    const anyRunning = set.analyses.some(
+      (a) => runs[a.id]?.status === "running",
+    );
+    return (
+      <TabsContent key={set.id} value={set.id} className="mt-4 space-y-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <p className="max-w-xl text-sm text-muted-foreground">
+            {set.description}
+          </p>
+          <Button onClick={() => runAll(set)} disabled={anyRunning}>
+            {anyRunning ? <Loader2 className="animate-spin" /> : <Sparkles />}
+            Run all {set.analyses.length} analyses
+          </Button>
+        </div>
+
+        <Tabs
+          value={activeAnalysis[set.id]}
+          onValueChange={(value) =>
+            setActiveAnalysis((prev) => ({ ...prev, [set.id]: value }))
+          }
+        >
+          <TabsList className="h-auto flex-wrap">
+            {set.analyses.map((analysis) => {
+              const status = runs[analysis.id]?.status ?? "idle";
+              return (
+                <TabsTrigger key={analysis.id} value={analysis.id}>
+                  {status === "running" ? (
+                    <Loader2 className="size-3.5 animate-spin" />
+                  ) : status === "done" ? (
+                    <CheckCircle2 className="size-3.5 text-emerald-600" />
+                  ) : status === "error" ? (
+                    <AlertCircle className="size-3.5 text-destructive" />
+                  ) : null}
+                  {analysis.label}
+                </TabsTrigger>
+              );
+            })}
+          </TabsList>
+
+          {set.analyses.map((analysis) => {
+            const run = runs[analysis.id] ?? { status: "idle" as const };
+            return (
+              <TabsContent
+                key={analysis.id}
+                value={analysis.id}
+                className="mt-4"
+              >
+                <Card>
+                  <CardHeader>
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <CardTitle className="text-base">
+                        {analysis.title}
+                      </CardTitle>
+                      <Badge variant="outline">{analysis.sourcePrompts}</Badge>
+                    </div>
+                    <CardDescription>{analysis.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {run.status === "idle" ? (
+                      <Button onClick={() => runAnalysis(analysis)}>
+                        <Play /> Run {analysis.label}
+                      </Button>
+                    ) : null}
+
+                    {run.status === "running" ? (
+                      <div className="space-y-3">
+                        <p className="text-sm text-muted-foreground">
+                          Reviewing your manuscript against {analysis.title}…
+                          (~30–60s)
+                        </p>
+                        <Skeleton className="h-32 w-full" />
+                        <Skeleton className="h-24 w-full" />
+                      </div>
+                    ) : null}
+
+                    {run.status === "error" ? (
+                      <Alert variant="destructive">
+                        <AlertCircle />
+                        <AlertTitle>Analysis failed</AlertTitle>
+                        <AlertDescription className="flex flex-col gap-3">
+                          <span>{run.error}</span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-fit"
+                            onClick={() => runAnalysis(analysis)}
+                          >
+                            <RotateCcw /> Retry
+                          </Button>
+                        </AlertDescription>
+                      </Alert>
+                    ) : null}
+
+                    {run.status === "done" && run.markdown && manuscript ? (
+                      <div className="space-y-4">
+                        <div className="flex flex-wrap gap-2">
+                          <SaveButton
+                            toolId="manuscript-coach"
+                            title={`${analysis.title} — ${manuscript.fileName}`}
+                            content={run.markdown}
+                          />
+                          <DownloadButton
+                            content={run.markdown}
+                            filename={`${analysis.id}-review.md`}
+                          />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => runAnalysis(analysis)}
+                          >
+                            <RotateCcw /> Re-run
+                          </Button>
+                        </div>
+                        <MarkdownView>{run.markdown}</MarkdownView>
+                      </div>
+                    ) : null}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            );
+          })}
+        </Tabs>
+      </TabsContent>
+    );
+  }
 
   return (
     <div className="mx-auto w-full max-w-4xl space-y-5">
@@ -164,9 +297,10 @@ export function CoachClient() {
         <p className="mt-1 text-sm text-muted-foreground">
           Upload your manuscript and review it against the editorial standards
           of <em>Telling the Story: The Three Pillars of Effective Scientific
-          Communication</em> (Piccirillo, JAMA Otolaryngol Head Neck Surg).
-          Each pillar returns a step-by-step diagnostic with targeted revision
-          suggestions grounded in your actual text.
+          Communication</em> and <em>Results Reporting: A Guide for JAMA
+          Otolaryngology–Head &amp; Neck Surgery</em>. Each analysis returns a
+          step-by-step diagnostic with targeted revision suggestions grounded
+          in your actual text.
         </p>
       </div>
 
@@ -309,159 +443,32 @@ export function CoachClient() {
 
       {/* ---------- Step 2: sets and analyses ---------- */}
       {manuscript ? (
-        <Tabs defaultValue={set1.id}>
+        <Tabs defaultValue={activeSets[0]?.id}>
           <TabsList>
-            <TabsTrigger value={set1.id}>{set1.label}</TabsTrigger>
-            <TabsTrigger value={set2.id}>
-              {set2.label}
-              <Badge variant="secondary" className="ml-1.5">
-                Soon
-              </Badge>
-            </TabsTrigger>
+            {activeSets.map((set) => (
+              <TabsTrigger key={set.id} value={set.id}>
+                {set.label}
+              </TabsTrigger>
+            ))}
+            {comingSoonSets.map((set) => (
+              <TabsTrigger key={set.id} value={set.id}>
+                {set.label}
+                <Badge variant="secondary" className="ml-1.5">
+                  Soon
+                </Badge>
+              </TabsTrigger>
+            ))}
           </TabsList>
 
-          <TabsContent value={set1.id} className="mt-4 space-y-4">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <p className="max-w-xl text-sm text-muted-foreground">
-                {set1.description}
+          {activeSets.map((set) => renderSetPanel(set))}
+
+          {comingSoonSets.map((set) => (
+            <TabsContent key={set.id} value={set.id} className="mt-4">
+              <p className="max-w-2xl text-sm text-muted-foreground">
+                {set.description}
               </p>
-              <Button onClick={runAll} disabled={anyRunning}>
-                {anyRunning ? (
-                  <Loader2 className="animate-spin" />
-                ) : (
-                  <Sparkles />
-                )}
-                Run all {set1.analyses.length} analyses
-              </Button>
-            </div>
-
-            <Tabs value={activeAnalysis} onValueChange={setActiveAnalysis}>
-              <TabsList className="h-auto flex-wrap">
-                {set1.analyses.map((analysis) => {
-                  const status = runs[analysis.id]?.status ?? "idle";
-                  return (
-                    <TabsTrigger key={analysis.id} value={analysis.id}>
-                      {status === "running" ? (
-                        <Loader2 className="size-3.5 animate-spin" />
-                      ) : status === "done" ? (
-                        <CheckCircle2 className="size-3.5 text-emerald-600" />
-                      ) : status === "error" ? (
-                        <AlertCircle className="size-3.5 text-destructive" />
-                      ) : null}
-                      {analysis.label}
-                    </TabsTrigger>
-                  );
-                })}
-              </TabsList>
-
-              {set1.analyses.map((analysis) => {
-                const run = runs[analysis.id] ?? { status: "idle" as const };
-                return (
-                  <TabsContent
-                    key={analysis.id}
-                    value={analysis.id}
-                    className="mt-4"
-                  >
-                    <Card>
-                      <CardHeader>
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <CardTitle className="text-base">
-                            {analysis.title}
-                          </CardTitle>
-                          <Badge variant="outline">
-                            {analysis.sourcePrompts}
-                          </Badge>
-                        </div>
-                        <CardDescription>{analysis.description}</CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        {run.status === "idle" ? (
-                          <Button onClick={() => runAnalysis(analysis)}>
-                            <Play /> Run {analysis.label}
-                          </Button>
-                        ) : null}
-
-                        {run.status === "running" ? (
-                          <div className="space-y-3">
-                            <p className="text-sm text-muted-foreground">
-                              Reviewing your manuscript against{" "}
-                              {analysis.title}… (~30–60s)
-                            </p>
-                            <Skeleton className="h-32 w-full" />
-                            <Skeleton className="h-24 w-full" />
-                          </div>
-                        ) : null}
-
-                        {run.status === "error" ? (
-                          <Alert variant="destructive">
-                            <AlertCircle />
-                            <AlertTitle>Analysis failed</AlertTitle>
-                            <AlertDescription className="flex flex-col gap-3">
-                              <span>{run.error}</span>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="w-fit"
-                                onClick={() => runAnalysis(analysis)}
-                              >
-                                <RotateCcw /> Retry
-                              </Button>
-                            </AlertDescription>
-                          </Alert>
-                        ) : null}
-
-                        {run.status === "done" && run.markdown ? (
-                          <div className="space-y-4">
-                            <div className="flex flex-wrap gap-2">
-                              <SaveButton
-                                toolId="manuscript-coach"
-                                title={`${analysis.title} — ${manuscript.fileName}`}
-                                content={run.markdown}
-                              />
-                              <DownloadButton
-                                content={run.markdown}
-                                filename={`${analysis.id}-review.md`}
-                              />
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => runAnalysis(analysis)}
-                              >
-                                <RotateCcw /> Re-run
-                              </Button>
-                            </div>
-                            <MarkdownView>{run.markdown}</MarkdownView>
-                          </div>
-                        ) : null}
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-                );
-              })}
-            </Tabs>
-          </TabsContent>
-
-          <TabsContent value={set2.id} className="mt-4 space-y-4">
-            <p className="max-w-2xl text-sm text-muted-foreground">
-              {set2.description}
-            </p>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {set2Preview.map((item) => (
-                <Card key={item.title} className="opacity-75">
-                  <CardHeader>
-                    <CardTitle className="text-sm">{item.title}</CardTitle>
-                    <CardDescription>{item.description}</CardDescription>
-                  </CardHeader>
-                </Card>
-              ))}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Set 2 analyses address language and framing only — the AI will
-              never recalculate, verify, or generate statistical values. If
-              effect sizes or 95% CIs are missing from your manuscript,
-              calculate them with statistical software first.
-            </p>
-          </TabsContent>
+            </TabsContent>
+          ))}
         </Tabs>
       ) : null}
     </div>

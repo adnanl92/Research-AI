@@ -77,7 +77,7 @@ export const tools: ToolDefinition[] = [
     icon: BookText,
     route: "/tools/manuscript-coach",
     description:
-      "Upload a manuscript (PDF or Word) and review it against the Three Pillars of scientific storytelling, pillar by pillar, with targeted revision suggestions.",
+      "Upload a manuscript (PDF or Word) and review it against the Three Pillars of scientific storytelling and JAMA results-reporting standards, with targeted revision suggestions.",
     status: "active",
   },
   {
