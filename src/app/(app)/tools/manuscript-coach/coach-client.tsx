@@ -291,7 +291,7 @@ export function CoachClient() {
   return (
     <div className="mx-auto w-full max-w-4xl space-y-5">
       <div>
-        <h2 className="text-xl font-semibold tracking-tight">
+        <h2 className="font-serif text-2xl font-semibold tracking-tight">
           Manuscript Coach
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">

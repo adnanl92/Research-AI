@@ -82,7 +82,7 @@ export function GrantClient() {
   return (
     <div className="mx-auto w-full max-w-4xl space-y-5">
       <div>
-        <h2 className="text-xl font-semibold tracking-tight">Grant Editor</h2>
+        <h2 className="font-serif text-2xl font-semibold tracking-tight">Grant Editor</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Draft a Specific Aims page from a rough idea, and see how your
           proposal fits into the published landscape.

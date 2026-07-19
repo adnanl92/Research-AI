@@ -27,7 +27,7 @@ export default async function HomePage() {
   return (
     <div className="mx-auto w-full max-w-5xl space-y-8">
       <div>
-        <h2 className="text-2xl font-semibold tracking-tight">
+        <h2 className="font-serif text-3xl font-semibold tracking-tight">
           Welcome to the WashU Research Assistant
         </h2>
         <p className="mt-1 text-muted-foreground">
@@ -43,7 +43,7 @@ export default async function HomePage() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {toolTiles.map((tool) => (
             <Link key={tool.id} href={tool.route} className="group">
-              <Card className="h-full transition-colors group-hover:border-primary/50 group-hover:bg-accent/50">
+              <Card className="h-full shadow-xs transition-all duration-200 group-hover:border-primary/25 group-hover:shadow-md">
                 <CardHeader>
                   <div className="mb-2 flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
                     <tool.icon className="size-5" />

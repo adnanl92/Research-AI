@@ -61,6 +61,7 @@ export function AppSidebar() {
                       asChild
                       isActive={isActive}
                       tooltip={tool.label}
+                      className="data-[active=true]:relative data-[active=true]:font-medium data-[active=true]:before:absolute data-[active=true]:before:top-1.5 data-[active=true]:before:bottom-1.5 data-[active=true]:before:left-0 data-[active=true]:before:w-0.5 data-[active=true]:before:rounded-full data-[active=true]:before:bg-primary"
                     >
                       <Link href={tool.route}>
                         <tool.icon />

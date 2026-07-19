@@ -71,7 +71,7 @@ export function NotesClient() {
   return (
     <div className="mx-auto w-full max-w-3xl space-y-5">
       <div>
-        <h2 className="text-xl font-semibold tracking-tight">Meeting Notes</h2>
+        <h2 className="font-serif text-2xl font-semibold tracking-tight">Meeting Notes</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Paste raw meeting notes or a transcript and get a structured
           summary: decisions, action items with owners, and open questions.

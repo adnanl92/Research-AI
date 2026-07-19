@@ -93,7 +93,7 @@ export function DiagramClient() {
   return (
     <div className="mx-auto w-full max-w-4xl space-y-5">
       <div>
-        <h2 className="text-xl font-semibold tracking-tight">Diagram Builder</h2>
+        <h2 className="font-serif text-2xl font-semibold tracking-tight">Diagram Builder</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Describe a process, workflow, or study design in plain language and
           get an editable Mermaid diagram, rendered right here with no

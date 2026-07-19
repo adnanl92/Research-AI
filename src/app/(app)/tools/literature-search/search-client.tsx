@@ -58,6 +58,12 @@ interface SearchResponse {
   fromCache: boolean;
 }
 
+const EXAMPLE_QUERIES = [
+  "Does mindfulness training reduce burnout in physicians?",
+  "Is intermittent fasting effective for long-term weight loss?",
+  "Do checklists reduce surgical complications?",
+];
+
 const STANCE_STYLES: Record<Stance, { label: string; bar: string }> = {
   yes: { label: "Yes", bar: "bg-emerald-500" },
   no: { label: "No", bar: "bg-rose-500" },
@@ -169,7 +175,7 @@ export function SearchClient() {
   return (
     <div className="mx-auto w-full max-w-4xl space-y-6">
       <div>
-        <h2 className="text-xl font-semibold tracking-tight">
+        <h2 className="font-serif text-2xl font-semibold tracking-tight">
           Literature Search
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -243,6 +249,25 @@ export function SearchClient() {
           </div>
         </div>
       </form>
+
+      {!result && !loading && !error && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs text-muted-foreground">Try:</span>
+          {EXAMPLE_QUERIES.map((q) => (
+            <button
+              key={q}
+              type="button"
+              onClick={() => {
+                setQuery(q);
+                runSearch(q);
+              }}
+              className="rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs text-primary transition-colors hover:bg-primary/10"
+            >
+              {q}
+            </button>
+          ))}
+        </div>
+      )}
 
       {loading ? (
         <div className="space-y-4">

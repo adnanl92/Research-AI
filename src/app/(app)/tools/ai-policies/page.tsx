@@ -58,7 +58,7 @@ export default function AiPoliciesPage() {
   return (
     <div className="mx-auto w-full max-w-3xl space-y-5">
       <div>
-        <h2 className="text-xl font-semibold tracking-tight">AI Policies</h2>
+        <h2 className="font-serif text-2xl font-semibold tracking-tight">AI Policies</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Institutional guidance on AI use in research. This page is static
           reference content maintained by administrators. It makes no AI or
