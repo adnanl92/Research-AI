@@ -53,7 +53,7 @@ export function UserMenu({ name, email }: UserMenuProps) {
           <User />
           Profile (coming soon)
         </DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => signOut({ callbackUrl: "/signin" })}>
+        <DropdownMenuItem onSelect={() => signOut({ redirectTo: "/signin" })}>
           <LogOut />
           Sign out
         </DropdownMenuItem>

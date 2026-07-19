@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Bookmark } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 import { activeTools, getToolById } from "@/lib/tools/registry";
 import { auth } from "@/lib/auth";
@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { SavedItemsList } from "@/components/saved-items-list";
 
 export default async function HomePage() {
   const toolTiles = activeTools.filter((t) => t.id !== "home");
@@ -69,30 +70,19 @@ export default async function HomePage() {
             here.
           </p>
         ) : (
-          <ul className="divide-y rounded-lg border">
-            {recentItems.map((item) => {
-              const tool = getToolById(item.toolId);
-              return (
-                <li key={item.id}>
-                  <Link
-                    href={tool?.route ?? "/"}
-                    className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-accent/50"
-                  >
-                    <Bookmark className="size-4 shrink-0 text-muted-foreground" />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium">
-                        {item.title}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {tool?.label ?? item.toolId} ·{" "}
-                        {item.createdAt.toLocaleDateString()}
-                      </p>
-                    </div>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+          <SavedItemsList
+            items={recentItems.map((item) => ({
+              id: item.id,
+              title: item.title,
+              content: item.content,
+              toolLabel: getToolById(item.toolId)?.label ?? item.toolId,
+              createdAt: item.createdAt.toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              }),
+            }))}
+          />
         )}
       </section>
     </div>

@@ -5,7 +5,6 @@ import {
   AlertCircle,
   ArrowLeft,
   ArrowRight,
-  Loader2,
   RotateCcw,
   Sparkles,
 } from "lucide-react";
