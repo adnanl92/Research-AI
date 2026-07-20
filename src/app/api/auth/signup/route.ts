@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 
 import { db } from "@/lib/db";
 
@@ -57,9 +58,24 @@ export async function POST(request: Request) {
   }
 
   const hashedPassword = await bcrypt.hash(password, 12);
-  await db.user.create({
-    data: { name, email: normalizedEmail, hashedPassword },
-  });
+  try {
+    await db.user.create({
+      data: { name, email: normalizedEmail, hashedPassword },
+    });
+  } catch (error) {
+    // Two concurrent signups can both pass the findUnique check; the unique
+    // constraint catches the loser — return the same 409 as the pre-check.
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return NextResponse.json(
+        { error: "An account with this email already exists" },
+        { status: 409 },
+      );
+    }
+    throw error;
+  }
 
   return NextResponse.json({ ok: true }, { status: 201 });
 }

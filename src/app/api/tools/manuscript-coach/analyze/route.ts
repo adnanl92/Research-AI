@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { requireToolAccess } from "@/lib/tools/guard";
 import { generateCompletion, LLMError } from "@/lib/llm/client";
-import { logToolRun } from "@/lib/tools/log";
+import { completeToolRun } from "@/lib/tools/log";
 import { analysisIds, getAnalysisById } from "@/lib/manuscript-coach/definitions";
 
 export const maxDuration = 120;
@@ -19,7 +19,7 @@ const requestSchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const access = await requireToolAccess();
+  const access = await requireToolAccess("manuscript-coach");
   if (access instanceof NextResponse) return access;
 
   let body: unknown;
@@ -53,9 +53,8 @@ export async function POST(request: Request) {
       maxTokens: analysis.maxTokens,
     });
 
-    await logToolRun({
-      userId: access.userId,
-      toolId: "manuscript-coach",
+    await completeToolRun({
+      runId: access.runId,
       // Never the manuscript text itself — the extract route promises the
       // manuscript is not persisted anywhere.
       inputSummary: analysisId,

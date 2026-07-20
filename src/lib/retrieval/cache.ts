@@ -47,4 +47,11 @@ export async function setCached(
       // Caching must never break a search.
       console.error("Failed to write ApiCache entry:", error);
     });
+
+  // Opportunistically sweep expired rows (they are otherwise only deleted
+  // when their exact key is requested again) so the table cannot grow
+  // unbounded.
+  await db.apiCache
+    .deleteMany({ where: { expiresAt: { lt: new Date() } } })
+    .catch(() => {});
 }

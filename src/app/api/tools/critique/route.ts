@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { requireToolAccess } from "@/lib/tools/guard";
 import { generateStructured, LLMError } from "@/lib/llm/client";
-import { logToolRun } from "@/lib/tools/log";
+import { completeToolRun } from "@/lib/tools/log";
 
 export const maxDuration = 120;
 
@@ -30,7 +30,7 @@ const PERSONAS: Record<string, string> = {
 };
 
 export async function POST(request: Request) {
-  const access = await requireToolAccess();
+  const access = await requireToolAccess("critique");
   if (access instanceof NextResponse) return access;
 
   let body: unknown;
@@ -62,9 +62,8 @@ Critique the submitted draft constructively — this is pre-submission review to
       maxTokens: 3000,
     });
 
-    await logToolRun({
-      userId: access.userId,
-      toolId: "critique",
+    await completeToolRun({
+      runId: access.runId,
       // Draft text is unpublished work — log only which persona ran.
       inputSummary: `critique: ${persona}`,
       inputTokens: result.usage.promptTokens,

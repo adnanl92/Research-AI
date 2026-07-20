@@ -5,7 +5,7 @@ import { requireToolAccess } from "@/lib/tools/guard";
 import { generateCompletion, LLMError } from "@/lib/llm/client";
 import { searchLiterature } from "@/lib/retrieval/merge";
 import type { Paper } from "@/lib/retrieval/types";
-import { logToolRun } from "@/lib/tools/log";
+import { completeToolRun } from "@/lib/tools/log";
 
 export const maxDuration = 120;
 
@@ -51,7 +51,7 @@ Abstract: ${p.abstract?.slice(0, 1200) ?? p.tldr ?? "No abstract available."}`;
 }
 
 export async function POST(request: Request) {
-  const access = await requireToolAccess();
+  const access = await requireToolAccess("grant-editor");
   if (access instanceof NextResponse) return access;
 
   let body: unknown;
@@ -79,10 +79,10 @@ export async function POST(request: Request) {
         maxTokens: 3000,
       });
 
-      await logToolRun({
-        userId: access.userId,
-        toolId: "grant-editor",
-        inputSummary: `aims: ${parsed.data.idea}`,
+      await completeToolRun({
+        runId: access.runId,
+        // The idea text is unfunded research — log a neutral label only.
+        inputSummary: "aims draft",
         inputTokens: result.usage.promptTokens,
         outputTokens: result.usage.completionTokens,
         latencyMs: Date.now() - startedAt,
@@ -113,9 +113,8 @@ export async function POST(request: Request) {
       maxTokens: 2000,
     });
 
-    await logToolRun({
-      userId: access.userId,
-      toolId: "grant-editor",
+    await completeToolRun({
+      runId: access.runId,
       inputSummary: `related-work: ${parsed.data.topic}`,
       inputTokens: result.usage.promptTokens,
       outputTokens: result.usage.completionTokens,

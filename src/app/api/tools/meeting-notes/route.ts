@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { requireToolAccess } from "@/lib/tools/guard";
 import { generateStructured, LLMError } from "@/lib/llm/client";
-import { logToolRun } from "@/lib/tools/log";
+import { completeToolRun } from "@/lib/tools/log";
 
 export const maxDuration = 120;
 
@@ -24,7 +24,7 @@ const summarySchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const access = await requireToolAccess();
+  const access = await requireToolAccess("meeting-notes");
   if (access instanceof NextResponse) return access;
 
   let body: unknown;
@@ -57,9 +57,8 @@ export async function POST(request: Request) {
       maxTokens: 2500,
     });
 
-    await logToolRun({
-      userId: access.userId,
-      toolId: "meeting-notes",
+    await completeToolRun({
+      runId: access.runId,
       // Meeting notes routinely name people and decisions — log a neutral
       // label, never the notes themselves.
       inputSummary: "meeting-notes run",

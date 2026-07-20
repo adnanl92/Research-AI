@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { requireToolAccess } from "@/lib/tools/guard";
 import { generateCompletion, LLMError } from "@/lib/llm/client";
-import { logToolRun } from "@/lib/tools/log";
+import { completeToolRun } from "@/lib/tools/log";
 
 export const maxDuration = 120;
 
@@ -25,7 +25,7 @@ Rules:
 - Keep diagrams readable: at most ~20 nodes; group with subgraphs when it helps.`;
 
 export async function POST(request: Request) {
-  const access = await requireToolAccess();
+  const access = await requireToolAccess("diagram-builder");
   if (access instanceof NextResponse) return access;
 
   let body: unknown;
@@ -70,9 +70,8 @@ export async function POST(request: Request) {
       .replace(/\s*```$/, "")
       .trim();
 
-    await logToolRun({
-      userId: access.userId,
-      toolId: "diagram-builder",
+    await completeToolRun({
+      runId: access.runId,
       inputSummary: description,
       inputTokens: result.usage.promptTokens,
       outputTokens: result.usage.completionTokens,

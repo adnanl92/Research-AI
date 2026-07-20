@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { requireToolAccess } from "@/lib/tools/guard";
-import { logToolRun } from "@/lib/tools/log";
+import { completeToolRun } from "@/lib/tools/log";
 
 export const maxDuration = 60;
 
@@ -44,7 +44,7 @@ async function extractDocx(buffer: ArrayBuffer): Promise<string> {
 }
 
 export async function POST(request: Request) {
-  const access = await requireToolAccess();
+  const access = await requireToolAccess("manuscript-extract");
   if (access instanceof NextResponse) return access;
 
   let formData: FormData;
@@ -90,9 +90,8 @@ export async function POST(request: Request) {
     // Parsing a 15 MB file is CPU- and memory-heavy, so every parse counts
     // against the rate limit like any other tool call. Neutral label only —
     // the filename can identify an unpublished manuscript.
-    await logToolRun({
-      userId: access.userId,
-      toolId: "manuscript-extract",
+    await completeToolRun({
+      runId: access.runId,
       inputSummary: isPdf ? "pdf upload" : "docx upload",
       latencyMs: Date.now() - startedAt,
     });
@@ -119,9 +118,8 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     // Failed parses burn the same CPU as successful ones — still count them.
-    await logToolRun({
-      userId: access.userId,
-      toolId: "manuscript-extract",
+    await completeToolRun({
+      runId: access.runId,
       inputSummary: "extract failed",
       latencyMs: Date.now() - startedAt,
     });

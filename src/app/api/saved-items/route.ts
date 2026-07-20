@@ -50,10 +50,13 @@ export async function GET(request: Request) {
   }
 
   const toolId = new URL(request.url).searchParams.get("toolId") ?? undefined;
+  // List view omits content/sourceMetadata (each up to 500 KB per item) —
+  // fetch a single item via GET /api/saved-items/[id] to read it.
   const items = await db.savedItem.findMany({
     where: { userId: session.user.id, ...(toolId ? { toolId } : {}) },
     orderBy: { createdAt: "desc" },
     take: 50,
+    select: { id: true, toolId: true, title: true, createdAt: true },
   });
 
   return NextResponse.json({ items });

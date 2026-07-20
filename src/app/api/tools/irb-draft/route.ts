@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { requireToolAccess } from "@/lib/tools/guard";
 import { generateCompletion, LLMError } from "@/lib/llm/client";
-import { logToolRun } from "@/lib/tools/log";
+import { completeToolRun } from "@/lib/tools/log";
 
 export const maxDuration = 120;
 
@@ -40,7 +40,7 @@ Produce a document with exactly these headed sections, in this order:
 Write in formal protocol prose (third person, present/future tense). Match the study type's conventions (e.g., a retrospective chart review should discuss waiver of consent where appropriate — flagged as a suggestion, not a determination). This draft does NOT replace institutional IRB review or legal/compliance guidance, and the document should not claim any approval status.`;
 
 export async function POST(request: Request) {
-  const access = await requireToolAccess();
+  const access = await requireToolAccess("irb-draft");
   if (access instanceof NextResponse) return access;
 
   let body: unknown;
@@ -87,9 +87,8 @@ ${dataHandling}`,
       maxTokens: 4000,
     });
 
-    await logToolRun({
-      userId: access.userId,
-      toolId: "irb-draft",
+    await completeToolRun({
+      runId: access.runId,
       inputSummary: title,
       inputTokens: result.usage.promptTokens,
       outputTokens: result.usage.completionTokens,

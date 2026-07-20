@@ -5,7 +5,7 @@ import { requireToolAccess } from "@/lib/tools/guard";
 import { generateCompletion } from "@/lib/llm/client";
 import { getCached, makeCacheKey, setCached } from "@/lib/retrieval/cache";
 import { fetchJson } from "@/lib/retrieval/http";
-import { logToolRun } from "@/lib/tools/log";
+import { completeToolRun } from "@/lib/tools/log";
 
 export const maxDuration = 120;
 
@@ -142,7 +142,7 @@ function classifyInput(raw: string): { type: "doi" | "openalex" | "orcid" | "nam
 }
 
 export async function POST(request: Request) {
-  const access = await requireToolAccess();
+  const access = await requireToolAccess("bibliometric");
   if (access instanceof NextResponse) return access;
 
   let body: unknown;
@@ -213,9 +213,8 @@ export async function POST(request: Request) {
       // data still renders without the summary
     }
 
-    await logToolRun({
-      userId: access.userId,
-      toolId: "bibliometric",
+    await completeToolRun({
+      runId: access.runId,
       inputSummary: parsed.data.input,
       inputTokens: usage.promptTokens,
       outputTokens: usage.completionTokens,

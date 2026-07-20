@@ -5,7 +5,7 @@ import { requireToolAccess } from "@/lib/tools/guard";
 import { generateCompletion, generateStructured, LLMError } from "@/lib/llm/client";
 import { searchLiterature } from "@/lib/retrieval/merge";
 import type { Paper } from "@/lib/retrieval/types";
-import { logToolRun } from "@/lib/tools/log";
+import { completeToolRun } from "@/lib/tools/log";
 
 export const maxDuration = 120;
 
@@ -62,7 +62,7 @@ Rules:
 - Structure: a 1-2 sentence direct answer first, then 2-4 short paragraphs of supporting evidence, then limitations of the retrieved evidence.`;
 
 export async function POST(request: Request) {
-  const access = await requireToolAccess();
+  const access = await requireToolAccess("literature-search");
   if (access instanceof NextResponse) return access;
 
   let body: unknown;
@@ -143,9 +143,16 @@ export async function POST(request: Request) {
     if (consensusRaw) {
       const counts = { yes: 0, no: 0, mixed: 0, unclear: 0 };
       const weighted = { yes: 0, no: 0, mixed: 0, unclear: 0 };
-      const stances = consensusRaw.data.stances.filter(
-        (s) => s.paper >= 1 && s.paper <= papers.length,
-      );
+      // Keep only in-range paper numbers, first stance per paper — a model
+      // that repeats a paper must not double-count it in the meter.
+      const seen = new Set<number>();
+      const stances = consensusRaw.data.stances.filter((s) => {
+        if (s.paper < 1 || s.paper > papers.length || seen.has(s.paper)) {
+          return false;
+        }
+        seen.add(s.paper);
+        return true;
+      });
       for (const s of stances) {
         counts[s.stance] += 1;
         // Weight by log-scaled citation count so a 10k-citation paper counts
@@ -156,9 +163,8 @@ export async function POST(request: Request) {
       consensus = { counts, weighted, stances };
     }
 
-    await logToolRun({
-      userId: access.userId,
-      toolId: "literature-search",
+    await completeToolRun({
+      runId: access.runId,
       inputSummary: query,
       inputTokens:
         answer.usage.promptTokens + (consensusRaw?.usage.promptTokens ?? 0),

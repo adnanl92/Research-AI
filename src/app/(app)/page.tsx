@@ -21,6 +21,8 @@ export default async function HomePage() {
         where: { userId: session.user.id },
         orderBy: { createdAt: "desc" },
         take: 5,
+        // content can be up to 500 KB per item — the dialog fetches it on open.
+        select: { id: true, toolId: true, title: true, createdAt: true },
       })
     : [];
 
@@ -74,7 +76,6 @@ export default async function HomePage() {
             items={recentItems.map((item) => ({
               id: item.id,
               title: item.title,
-              content: item.content,
               toolLabel: getToolById(item.toolId)?.label ?? item.toolId,
               createdAt: item.createdAt.toLocaleDateString("en-US", {
                 month: "short",

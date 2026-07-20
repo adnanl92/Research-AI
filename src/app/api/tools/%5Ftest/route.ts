@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import { requireToolAccess } from "@/lib/tools/guard";
 import { generateCompletion, LLMError } from "@/lib/llm/client";
-import { logToolRun } from "@/lib/tools/log";
+import { completeToolRun } from "@/lib/tools/log";
 
 /**
  * Connectivity test for the Azure AI Foundry endpoint.
@@ -10,7 +10,7 @@ import { logToolRun } from "@/lib/tools/log";
  * plus token usage, proving env vars and the deployment work end-to-end.
  */
 export async function GET() {
-  const access = await requireToolAccess();
+  const access = await requireToolAccess("_test");
   if (access instanceof NextResponse) return access;
 
   const startedAt = Date.now();
@@ -23,9 +23,8 @@ export async function GET() {
     });
 
     const latencyMs = Date.now() - startedAt;
-    await logToolRun({
-      userId: access.userId,
-      toolId: "_test",
+    await completeToolRun({
+      runId: access.runId,
       inputSummary: "Azure connectivity test",
       inputTokens: result.usage.promptTokens,
       outputTokens: result.usage.completionTokens,
