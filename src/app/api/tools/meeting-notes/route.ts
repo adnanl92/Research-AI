@@ -60,7 +60,9 @@ export async function POST(request: Request) {
     await logToolRun({
       userId: access.userId,
       toolId: "meeting-notes",
-      inputSummary: parsed.data.text,
+      // Meeting notes routinely name people and decisions — log a neutral
+      // label, never the notes themselves.
+      inputSummary: "meeting-notes run",
       inputTokens: result.usage.promptTokens,
       outputTokens: result.usage.completionTokens,
       latencyMs: Date.now() - startedAt,
@@ -71,9 +73,7 @@ export async function POST(request: Request) {
     const message =
       error instanceof LLMError
         ? error.message
-        : error instanceof Error
-          ? error.message
-          : "Request failed.";
+        : "Summarization failed. Please try again.";
     console.error("meeting-notes error:", error);
     return NextResponse.json({ error: message }, { status: 502 });
   }

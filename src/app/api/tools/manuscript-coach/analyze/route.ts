@@ -56,7 +56,9 @@ export async function POST(request: Request) {
     await logToolRun({
       userId: access.userId,
       toolId: "manuscript-coach",
-      inputSummary: `${analysisId}: ${text}`,
+      // Never the manuscript text itself — the extract route promises the
+      // manuscript is not persisted anywhere.
+      inputSummary: analysisId,
       inputTokens: result.usage.promptTokens,
       outputTokens: result.usage.completionTokens,
       latencyMs: Date.now() - startedAt,
@@ -67,9 +69,7 @@ export async function POST(request: Request) {
     const message =
       error instanceof LLMError
         ? error.message
-        : error instanceof Error
-          ? error.message
-          : "Request failed.";
+        : "Analysis failed. Please try again.";
     console.error("manuscript-coach analyze error:", error);
     return NextResponse.json({ error: message }, { status: 502 });
   }

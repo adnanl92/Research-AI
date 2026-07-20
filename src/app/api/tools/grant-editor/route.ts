@@ -127,9 +127,7 @@ export async function POST(request: Request) {
     const message =
       error instanceof LLMError
         ? error.message
-        : error instanceof Error
-          ? error.message
-          : "Request failed.";
+        : "Request failed. Please try again.";
     console.error("grant-editor error:", error);
     return NextResponse.json({ error: message }, { status: 502 });
   }

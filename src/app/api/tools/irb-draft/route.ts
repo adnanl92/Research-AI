@@ -101,9 +101,7 @@ ${dataHandling}`,
     const message =
       error instanceof LLMError
         ? error.message
-        : error instanceof Error
-          ? error.message
-          : "Request failed.";
+        : "Draft generation failed. Please try again.";
     console.error("irb-draft error:", error);
     return NextResponse.json({ error: message }, { status: 502 });
   }

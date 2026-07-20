@@ -29,6 +29,23 @@ export async function POST(request: Request) {
   const { name, email, password } = parsed.data;
   const normalizedEmail = email.toLowerCase();
 
+  // Until WashU SSO replaces credentials signup, ALLOWED_SIGNUP_DOMAINS
+  // (comma-separated, e.g. "wustl.edu") restricts who can create an account
+  // and burn LLM budget. Unset = open signup (local development only).
+  const allowedDomains = (process.env.ALLOWED_SIGNUP_DOMAINS ?? "")
+    .split(",")
+    .map((domain) => domain.trim().toLowerCase())
+    .filter(Boolean);
+  if (allowedDomains.length > 0) {
+    const emailDomain = normalizedEmail.split("@")[1] ?? "";
+    if (!allowedDomains.includes(emailDomain)) {
+      return NextResponse.json(
+        { error: "Sign-up is limited to approved email domains." },
+        { status: 403 },
+      );
+    }
+  }
+
   const existing = await db.user.findUnique({
     where: { email: normalizedEmail },
   });

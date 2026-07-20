@@ -84,9 +84,7 @@ export async function POST(request: Request) {
     const message =
       error instanceof LLMError
         ? error.message
-        : error instanceof Error
-          ? error.message
-          : "Request failed.";
+        : "Diagram generation failed. Please try again.";
     console.error("diagram-builder error:", error);
     return NextResponse.json({ error: message }, { status: 502 });
   }

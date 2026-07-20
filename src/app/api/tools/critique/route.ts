@@ -65,7 +65,8 @@ Critique the submitted draft constructively — this is pre-submission review to
     await logToolRun({
       userId: access.userId,
       toolId: "critique",
-      inputSummary: `${persona}: ${text}`,
+      // Draft text is unpublished work — log only which persona ran.
+      inputSummary: `critique: ${persona}`,
       inputTokens: result.usage.promptTokens,
       outputTokens: result.usage.completionTokens,
       latencyMs: Date.now() - startedAt,
@@ -76,9 +77,7 @@ Critique the submitted draft constructively — this is pre-submission review to
     const message =
       error instanceof LLMError
         ? error.message
-        : error instanceof Error
-          ? error.message
-          : "Request failed.";
+        : "Critique failed. Please try again.";
     console.error("critique error:", error);
     return NextResponse.json({ error: message }, { status: 502 });
   }
